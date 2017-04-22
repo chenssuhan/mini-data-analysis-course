@@ -29,7 +29,8 @@ flights %>% filter(month==1,day==1)
 ## 練習：查詢資料維度並 選出97學年的成績
 ```{r}
 load("transcript sample.Rdata")
-
+dim(transcript.data.new2)
+transcript.data.new2 %>% filter(學年==97)
 ```
 
 # Subset variables
@@ -44,7 +45,7 @@ select(flights, -(year:day))
 
 ## 練習：只留下 科目名稱 及 授課老師 變數，並使用 %>% 寫法
 ```{r}
-
+transcript.data.new2 %>% select(科目名稱,授課老師)
 ```
 
 # Summarise data
@@ -73,6 +74,15 @@ flights %>% filter(month==1, day==1) %>%
 
 ## 練習：計算 97學年 第1學期 陳孝琪 老師 經濟學原理 的全班成績 平均及標準差。
 ```{r}
+transcript.data.new2 %>% filter(
+  學年==97,
+  學期==1,
+  授課老師=="陳孝琪",
+  科目名稱=="經濟學原理"
+) %>% summarise(
+  mean.grade=mean(成績,na.rm=TRUE),
+  sd.grade=sd(成績,na.rm=TRUE)
+)
 
 ```
 
@@ -92,12 +102,15 @@ flights2
 
 ## 練習：產生 被當 的邏輯變數，利用 被當=(成績<60)
 ```{r}
-
+transcript.data.new2   %>% mutate(被當=(成績<60))
 ```
 
 ## 練習：請問97學年經濟學原理有多少比例的學生被當？
 ```{r}
-
+transcript.data.new2 %>% 
+  mutate(被當=(成績<60)) %>%
+  filter(學年==97,科目名稱=="經濟學原理") %>%
+  summarise(被當比例=mean(被當,na.rm=TRUE))
 ```
 
 # Group data
@@ -114,10 +127,18 @@ delay
 
 ## 練習：請問97學年每位經濟學原理老師各別當掉多少比例的學生？
 ```{r}
-
+transcript.data.new2 %>% 
+  mutate(被當=(成績<60)) %>%
+  filter(學年==97,科目名稱=="經濟學原理") %>%
+  group_by(授課老師) %>%
+  summarise(被當比例=mean(被當,na.rm=TRUE))
 ```
 
 ## 練習：請問各學年每位經濟學原理老師各別當掉多少比例的學生？這比例有個趨勢嗎？
 ```{r}
-
+transcript.data.new2 %>% 
+  mutate(被當=(成績<60)) %>%
+  filter(科目名稱=="經濟學原理") %>%
+  group_by(授課老師,學年) %>%
+  summarise(被當比例=mean(被當,na.rm=TRUE))
 ```
