@@ -7,11 +7,13 @@ output: html_notebook
 rm(list=ls())
 library(dplyr)
 ```
+
 # 基本觀察
 ```{r}
 library(nycflights13)
 dim(flights)
 flights
+dim(flights)[1]
 ```
 
 # Subset observations
