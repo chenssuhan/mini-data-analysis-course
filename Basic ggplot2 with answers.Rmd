@@ -26,32 +26,18 @@ diamonds %>% ggplot(aes(x=carat))+
 
 ```{r}
 levels(diamonds$color)
-str(diamonds$color)
 ```
 ```{r}
 diamonds %>% ggplot(aes(x=carat))+
   geom_histogram(alpha=0.5)+
-  geom_histogram(
-    data=diamonds %>%
-      filter(color=="E"),
-    alpha=0.5,
-    fill="red")+
-  geom_histogram(
-    data=diamonds %>%
-      filter(color=="F"),
-    alpha=0.3,fill="blue")
+  geom_histogram(data=diamonds %>% filter(color=="E"),alpha=0.5,fill="red")+
+  geom_histogram(data=diamonds %>% filter(color=="F"),alpha=0.3,fill="blue")
 ```
 
 ```{r}
 diamonds %>% ggplot(aes(x=carat))+
   geom_histogram(alpha=0.5)+
-  geom_histogram(
-    data= (
-      diamonds %>% 
-        filter(
-          color %in% c("E","F")
-          )
-      ),alpha=0.5,aes(fill=color))
+  geom_histogram(data= (diamonds %>% filter(color %in% c("E","F"))),alpha=0.5,aes(fill=color))
 ```
 
 ## 練習：使用histogram來繪製97學年度第1學期經濟學原理各班的成績分佈
@@ -61,19 +47,19 @@ Mac使用者必需再
 [參見：https://blog.gtwang.org/r/how-to-use-your-favorite-fonts-in-r-charts/]
 ```{r}
 load("transcript sample.Rdata")
-
+transcript.data.new2 %>% filter(學年==97,學期==1,科目名稱=="經濟學原理") %>%
+  ggplot(aes(x=成績,fill=授課老師))+
+  geom_histogram(aes(y=..density..))+
+  theme(text=element_text(family="STKaiti", size=12))
 ```
 
 # 3. Two variables: Continuous X, continuous Y
 ```{r}
 mtcars
 mtcars %>% ggplot(aes(x=wt, y=mpg))+
-  geom_point(aes(color=cyl)) -> p1
+  geom_point() -> p1
 p1
-mtcars$cyl <- factor(mtcars$cyl)
-mtcars %>% ggplot(aes(x=wt, y=mpg))+
-  geom_point(aes(color=cyl)) -> p1
-p1
+
 ```
 
 ```{r}
@@ -93,15 +79,30 @@ p2 + geom_smooth(method="lm",se=FALSE)
 ## 練習：97學年度經原學生第1學期成績與第2學期成績的關連性有多高？
 ## (1) 選出97學年經濟學原理的資料，並只留下學期，授課老師，成績及ID
 ```{r}
+transcript.data.new2 %>% filter(學年==97,科目名稱=="經濟學原理") %>%
+  select(學期,授課老師,成績,ID) -> data2
+data2
 
 ```
 ## (2) 將上下學期成績分成兩欄變數，使用tidyr::spread()
 ```{r}
+library(tidyr)
+data2 %>% spread(學期,成績) -> data3
+data3
 
+names(data3)[c(3,4)]<-c("上學期","下學期")
+data3
 ```
 ## (3) 畫出上下學期的離散圖（使用geom_point）並計算各別授課老師的學生上下學期成績correlation
 ```{r}
+data3 %>% ggplot(aes(x=上學期, y=下學期,color=授課老師))+
+  geom_point()+
+  theme(text=element_text(family="STKaiti", size=12))
 
+library(magrittr)
+data3 <- tbl_df(data3)
+data3 %>% select(上學期,下學期,授課老師) %>% group_by(授課老師) %>%
+ summarise(correlation=cor(上學期,下學期,use="complete.obs"))
 ```
 
 # 4. Two variables: Discrete X, Continuous Y
@@ -131,11 +132,15 @@ p
 ## 練習：三位經原老師班上成績的逐年趨勢
 (1) 記算各別老師各學年（上下學期不用分）班上平均成績
 ```{r}
-
+transcript.data.new2 %>% filter(科目名稱=="經濟學原理") %>% group_by(學年,授課老師) %>%
+  summarise(平均成績=mean(成績)) -> mean.grade
+mean.grade
 ```
 (2) x軸為學年，y軸為平均成績，畫出不同老師的平均成績趨勢直條圖
 ```{r}
-
+mean.grade %>% ggplot(aes(x=學年,y=平均成績,fill=授課老師)) +
+  geom_bar(stat = "identity",position = "dodge")+
+  theme(text=element_text(family="STKaiti", size=12))
 ```
 
 #4. Labels
@@ -150,7 +155,12 @@ f4
 
 ## 練習：請將上一題圖形加上主題"不同經原授課教師歷年全班平均成績"，並把 授課老師 的圖標改名為 "教師名稱" 
 ```{r}
-
+mean.grade %>% ggplot(aes(x=學年,y=平均成績,fill=授課老師)) +
+  geom_bar(stat = "identity",position = "dodge")+
+  theme(text=element_text(family="STKaiti", size=12))+
+  labs(title="不同經原授課教師歷年全班平均成績",
+       fill="教師名稱")->fecon
+fecon
 ```
 
 # 5. Save
@@ -161,6 +171,6 @@ ggsave("mpg vs weight.eps",f4)
 
 ## 練習：把最後一張圖存下來
 ```{r}
-
+ggsave("ec101 grade.png",fecon)
 ```
 
